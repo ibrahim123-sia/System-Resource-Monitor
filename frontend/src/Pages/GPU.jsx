@@ -173,16 +173,18 @@ const GPU = () => {
               </div>
               
               <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-orange-400 font-medium">Driver Version</h3>
-                <p className="text-white text-lg">{gpuData.driverVersion}</p>
-              </div>
-              
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-orange-400 font-medium">Driver Date</h3>
-                <p className="text-white text-lg">
-                  {new Date(gpuData.driverDate).toLocaleDateString()}
-                </p>
-              </div>
+  <h3 className="text-orange-400 font-medium">Driver Version</h3>
+  <p className="text-white text-lg">
+    {gpuData.driverVersion || 'Information not available'}
+  </p>
+</div>
+
+<div className="bg-gray-700 p-4 rounded-lg">
+  <h3 className="text-orange-400 font-medium">Driver Date</h3>
+  <p className="text-white text-lg">
+    {gpuData.driverDate || 'Information not available'}
+  </p>
+</div>
               
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-orange-400 font-medium">DirectX Version</h3>

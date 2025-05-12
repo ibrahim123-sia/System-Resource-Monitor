@@ -216,7 +216,7 @@ const Main = () => {
 
           <ChartBox
             title="GPU Info"
-            percent={GPU?.usagePercent.toFixed(2) || 0}
+            percent={GPU?.usagePercent?.toFixed(2) || 0}
             color="#fb7185"
             details={
               <>
