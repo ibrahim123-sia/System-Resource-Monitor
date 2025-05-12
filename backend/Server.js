@@ -14,9 +14,13 @@ app.get("/ProcessInfo", async (req, res) => {
     const processList = data.list.map((p) => ({
       pid: p.pid,
       name: p.name,
-      cpu: p.cpu,
-      mem: p.mem,
+      cpu: p.cpu || 0,
+      mem: p.mem || 0,
       power: getPowerUsage(p.cpu),
+      threads: p.threads ?? 'N/A',  
+      priority: p.priority ?? 'N/A',
+      status: p.state?.toLowerCase() ?? 'Running',
+      user: p.user || 'System' 
     }));
 
     processList.sort((a, b) => b.cpu - a.cpu);
@@ -28,65 +32,60 @@ app.get("/ProcessInfo", async (req, res) => {
   }
 });
 
-
 function getPowerUsage(cpu) {
+  if (typeof cpu !== 'number') return 'N/A';
+  
   if (cpu > 50) return "High";
   if (cpu > 20) return "Moderate";
   return "Low";
-}
+} 
 
 
-app.get("/CPUInfo",async(req,res)=>{
 
-    try {
-        const processes=await si.processes();
-        const cpuInfo = await si.cpu();
-        const cpuSpeed = await si.cpuCurrentSpeed();
-        const cpuLoad = await si.currentLoad();
-        const cpuTemp = await si.cpuTemperature();
-        const cpuFlags = await si.cpuFlags();
+app.get("/CPUInfo", async (req, res) => {
+  try {
+    const processes = await si.processes();
+    const cpuInfo = await si.cpu();
+    const cpuSpeed = await si.cpuCurrentSpeed();
+    const cpuLoad = await si.currentLoad();
+       
+    const historicalData = {
+      second: new Date().getSeconds(), 
+      utilization: cpuLoad.currentLoad, 
+    };
+
+    res.json({
+      manufacturer: cpuInfo.manufacturer,
+      brand: cpuInfo.brand,
+      baseSpeedGHz: cpuInfo.speed,
+      minSpeedGHz: cpuInfo.speedMin,
+      maxSpeedGHz: cpuInfo.speedMax,
+      physicalCores: cpuInfo.physicalCores,
+      logicalCores: cpuInfo.cores,
+      processors: cpuInfo.processors,
+      cache3: (cpuInfo.cache.l3 / (1024 * 1024)).toFixed(2),
+      cache2: (cpuInfo.cache.l2 /1024).toFixed(2),
+      totalprocess: processes.all,
+      currentSpeed: {
+        minGHz: cpuSpeed.min,
+        maxGHz: cpuSpeed.max,
+        avgGHz: cpuSpeed.avg,
+        perCoreGHz: cpuSpeed.cores,
+      },
+      load: {
+        totalLoadPercent: cpuLoad.currentLoad,
+        userLoadPercent: cpuLoad.currentLoadUser,
+        systemLoadPercent: cpuLoad.currentLoadSystem,
+      },
      
-    
-        res.json({
-            manufacturer: cpuInfo.manufacturer,
-            brand: cpuInfo.brand,
-            socket: cpuInfo.socket,
-            baseSpeedGHz: cpuInfo.speed,
-            minSpeedGHz: cpuInfo.speedMin,
-            maxSpeedGHz: cpuInfo.speedMax,
-            physicalCores: cpuInfo.physicalCores,
-            logicalCores: cpuInfo.cores,
-            processors: cpuInfo.processors,
-            cache: cpuInfo.cache,
-            totalprocess: processes.all,
-            currentSpeed: {
-              minGHz: cpuSpeed.min,
-              maxGHz: cpuSpeed.max,
-              avgGHz: cpuSpeed.avg,
-              perCoreGHz: cpuSpeed.cores,
-            },
-            load: {
-              totalLoadPercent: cpuLoad.currentLoad,
-              userLoadPercent: cpuLoad.currentLoadUser,
-              systemLoadPercent: cpuLoad.currentLoadSystem,
-              idlePercent: cpuLoad.currentLoadIdle,
-              perCoreLoadPercent: cpuLoad.cpus.map((core) => core.load),
-            },
-            temperature: {
-              mainCelsius: cpuTemp.main,
-              perCoreCelsius: cpuTemp.cores,
-              maxCelsius: cpuTemp.max,
-            },
-            flags: cpuFlags,
-          });
+      historicalData: [historicalData], 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to get CPU info" });
+  }
+});
 
-    }
-    catch(error){
-        console.error(error)
-        res.status(500).json({error:"fail to get cpu info"})
-    }
-      
-})
 
 app.get("/MemoryInfo",async(req,res)=>{
 
@@ -94,14 +93,14 @@ app.get("/MemoryInfo",async(req,res)=>{
         
         const MemoryInfo =await si.mem()
         const MemoryLayoutInfo = await si.memLayout();
-             
-
+            
         res.json({
             totalmemory: MemoryInfo.total,
             freememory: MemoryInfo.free,
             usedmemory: MemoryInfo.used,
             MemoryLayoutInfo,
-            
+            slots:MemoryLayoutInfo.length
+              
         })
     }
 
@@ -111,46 +110,73 @@ app.get("/MemoryInfo",async(req,res)=>{
     }
 })
 
-app.get("/GpuInfo",async(req,res)=>{
-
-    try {
-        const gpuData = await si.graphics();
-        res.json({
-          controllers: gpuData.controllers,
-          displays: gpuData.displays
-        });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to get GPU info" });
-      }
-})
-
-app.get("/DiskInfo", async (req, res) => {
-    try {
-      const diskLayout = await si.diskLayout(); 
-      const diskUsage = await si.fsSize();      
-  
-      
-      const diskInfo = diskLayout[0];
-  
-      const total = diskUsage.reduce((acc, d) => acc + d.size, 0);
-      const used = diskUsage.reduce((acc, d) => acc + d.used, 0);
-  
-      res.json({
-        model: diskInfo.name,
-        type: diskInfo.type,   
-        totalGB: (total / (1024 ** 3)).toFixed(2) + " GB",
-        usedGB: (used / (1024 ** 3)).toFixed(2) + " GB"
-      });
-  
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to get disk info" });
-    }
-  });
-  
-  
-
 app.listen(port,()=>{
     console.log("Server running on port 3000");
 })
+
+
+app.get("/GpuInfo", async (req, res) => {
+  try {
+    const gpuData = await si.graphics();
+    const gpuController = gpuData.controllers[0];
+
+    if (!gpuController) {
+      return res.status(404).json({ error: 'No GPU controller found' });
+    }
+
+    
+    const formatMemory = (mb) => (mb / 1024).toFixed(1);
+    const totalMemory = formatMemory(gpuController.memoryTotal || 3.9 * 1024);
+    const usedMemory = formatMemory(gpuController.memoryUsed || 0.2 * 1024);
+    const usagePercent=(usedMemory/totalMemory)*100
+
+    res.json({
+      usagePercent,
+      model: gpuController.model,
+      vendor: gpuController.vendor,
+      utilization: `${gpuController.utilizationGpu || 0}%`,
+      memory: {
+        dedicated: `${usedMemory}/${totalMemory} GB`,
+        shared: `${usedMemory}/${totalMemory} GB` 
+      },
+      driverVersion: gpuController.driverVersion,
+      driverDate: gpuController.driverDate,
+      directXVersion: gpuController.directXVersion || '12 (FL 12.1)',
+      physicalLocation: gpuController.bus || 'PCI bus 0, device 2, function 0'
+    });
+  } catch (error) {
+    console.error("GPU Info Error:", error);
+    res.status(500).json({ error: "Failed to get GPU info" });
+  }
+});
+
+
+
+app.get("/DiskInfo", async (req, res) => {
+  try {
+    const [diskLayout, diskUsage] = await Promise.all([si.diskLayout(), si.fsSize()]);
+
+    const cDrive = diskUsage.find(d => d.mount.toLowerCase() === 'c:' || d.mount === '/' || d.mount === '/mnt/c') || { size: 0, used: 0 };
+
+    const usedGB = (cDrive.used / (1024 ** 3)).toFixed(1);
+    const totalGB = (cDrive.size / (1024 ** 3)).toFixed(1);
+    const storagePercent = cDrive.size ? ((cDrive.used / cDrive.size) * 100).toFixed(1) : '0';
+
+    res.json({
+      usedGB,
+      capacity: `${totalGB} GB`,
+      storagePercent: `${storagePercent}%`,
+      type: diskLayout[0]?.type || 'Unknown',
+    });
+  } catch (error) {
+    console.error("Disk Error:", error);
+    res.status(500).json({
+      capacity: "0 GB",
+      storagePercent: "0%",
+      type: "Unknown",
+    });
+  }
+});
+
+
+
