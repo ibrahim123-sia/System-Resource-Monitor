@@ -38,7 +38,7 @@ const GPU = () => {
         time: new Date().toLocaleTimeString(),
       };
 
-      setHistory((prev) => [...prev.slice(-14), newData]); // Keep last 15 data points
+      setHistory((prev) => [...prev.slice(-14), newData]); 
       setGpuData(res.data);
       setError(null);
     } catch (err) {
@@ -59,13 +59,6 @@ const GPU = () => {
     labels: history.map((data) => data.time),
     datasets: [
       {
-        label: "GPU Utilization (%)",
-        data: history.map((data) => data.utilization),
-        borderColor: "#f59e0b",
-        backgroundColor: "rgba(245, 158, 11, 0.2)",
-        tension: 0.4,
-      },
-      {
         label: "Memory Used (GB)",
         data: history.map((data) => data.memoryUsed),
         borderColor: "#10b981",
@@ -79,9 +72,7 @@ const GPU = () => {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
-        </div>
+       <div className="flex justify-center mt-[200px] "><p className="text-lg text-green-500"> Loading...</p></div>
       </div>
     );
   }
@@ -105,10 +96,10 @@ const GPU = () => {
         <h1 className="text-3xl font-bold text-white mb-8">GPU Information</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Chart Section */}
+          
           <div className="bg-gray-800 p-6 rounded-xl">
             <h2 className="text-xl font-semibold text-white mb-4">
-              Performance Metrics
+              Usage history
             </h2>
             <div className="h-80">
               <Line
@@ -143,8 +134,8 @@ const GPU = () => {
             </h2>
             <div className="space-y-4">
               <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-orange-400 font-medium">Utilization</h3>
-                <p className="text-2xl text-white">{gpuData.utilization}</p>
+                <h3 className="text-orange-400 font-medium">Usage</h3>
+                <p className="text-2xl text-white">{gpuData?.usagePercent?.toFixed(1)}%</p>
               </div>
 
               <div className="bg-gray-700 p-4 rounded-lg">

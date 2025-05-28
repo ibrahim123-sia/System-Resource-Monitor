@@ -43,7 +43,7 @@ const Memory = () => {
       setMemoryData(res.data)
       setError(null)
     } catch (err) {
-      console.error('Error fetching memory info:', err)
+      
       setError('Failed to fetch memory data')
     } finally {
       setLoading(false)
@@ -52,7 +52,7 @@ const Memory = () => {
 
   useEffect(() => {
     fetchMemoryInfo()
-    const interval = setInterval(fetchMemoryInfo, 2000)
+    const interval = setInterval(fetchMemoryInfo, 1000)
     return () => clearInterval(interval)
   }, [])
 
@@ -73,11 +73,9 @@ const Memory = () => {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
-        </div>
+       <div className="flex justify-center mt-[200px] "><p className="text-xl text-green-500"> Loading...</p></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -99,7 +97,7 @@ const Memory = () => {
         <h1 className="text-3xl font-bold text-white mb-8">Memory Information</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Chart Section */}
+          
           <div className="bg-gray-800 p-6 rounded-xl">
             <h2 className="text-xl font-semibold text-white mb-4">Usage History</h2>
             <div className="h-80">
@@ -112,7 +110,8 @@ const Memory = () => {
                     legend: { labels: { color: '#fff' } }
                   },
                   scales: {
-                    x: { ticks: { color: '#9ca3af' } },
+                    x: { ticks: { color: '#9ca3af' },
+                        title:{text:'Time',display:true,color:'#9ca3af'} },
                     y: { 
                       ticks: { color: '#9ca3af' },
                       title: { text: 'GB', display: true, color: '#9ca3af' }

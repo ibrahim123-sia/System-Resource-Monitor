@@ -4,7 +4,7 @@ const cors=require("cors")
 
 const app=express()
 app.use(cors())
-const port=5000
+const port = process.env.PORT || 5000;
 
 
 app.get("/ProcessInfo", async (req, res) => {
@@ -17,10 +17,10 @@ app.get("/ProcessInfo", async (req, res) => {
       cpu: p.cpu || 0,
       mem: p.mem || 0,
       power: getPowerUsage(p.cpu),
-      threads: p.threads ?? 'N/A',  
+      threads: p.threads || 'N/A', 
       priority: p.priority ?? 'N/A',
-      status: p.state?.toLowerCase() ?? 'Running',
-      user: p.user || 'System' 
+      status: p.state ? p.state.toLowerCase() : 'unknown',
+      user:"System"
     }));
 
     processList.sort((a, b) => b.cpu - a.cpu);
@@ -38,9 +38,7 @@ function getPowerUsage(cpu) {
   if (cpu > 50) return "High";
   if (cpu > 20) return "Moderate";
   return "Low";
-} 
-
-
+}
 
 app.get("/CPUInfo", async (req, res) => {
   try {
@@ -50,7 +48,7 @@ app.get("/CPUInfo", async (req, res) => {
     const cpuLoad = await si.currentLoad();
        
     const historicalData = {
-      second: new Date().getSeconds(), 
+      timestamp: new Date().getTime(),  
       utilization: cpuLoad.currentLoad, 
     };
 
@@ -78,7 +76,7 @@ app.get("/CPUInfo", async (req, res) => {
         systemLoadPercent: cpuLoad.currentLoadSystem,
       },
      
-      historicalData: [historicalData], 
+      historicalData: [historicalData] 
     });
   } catch (error) {
     console.error(error);
@@ -89,8 +87,7 @@ app.get("/CPUInfo", async (req, res) => {
 
 app.get("/MemoryInfo",async(req,res)=>{
 
-    try{
-        
+    try{  
         const MemoryInfo =await si.mem()
         const MemoryLayoutInfo = await si.memLayout();
             
@@ -110,10 +107,6 @@ app.get("/MemoryInfo",async(req,res)=>{
     }
 })
 
-app.listen(port,()=>{
-    console.log("Server running on port 3000");
-})
-
 
 app.get("/GpuInfo", async (req, res) => {
   try {
@@ -131,6 +124,7 @@ app.get("/GpuInfo", async (req, res) => {
     const usagePercent=(usedMemory/totalMemory)*100
 
     res.json({
+      usedMemory:`${usedMemory} GB`,
       usagePercent,
       model: gpuController.model,
       vendor: gpuController.vendor,
@@ -155,28 +149,26 @@ app.get("/GpuInfo", async (req, res) => {
 app.get("/DiskInfo", async (req, res) => {
   try {
     const [diskLayout, diskUsage] = await Promise.all([si.diskLayout(), si.fsSize()]);
-
     const cDrive = diskUsage.find(d => d.mount.toLowerCase() === 'c:' || d.mount === '/' || d.mount === '/mnt/c') || { size: 0, used: 0 };
 
     const usedGB = (cDrive.used / (1024 ** 3)).toFixed(1);
     const totalGB = (cDrive.size / (1024 ** 3)).toFixed(1);
     const storagePercent = cDrive.size ? ((cDrive.used / cDrive.size) * 100).toFixed(1) : '0';
+    const free=totalGB-usedGB;
 
     res.json({
+      free,
       usedGB,
-      capacity: `${totalGB} GB`,
+      capacity:totalGB,
       storagePercent: `${storagePercent}%`,
       type: diskLayout[0]?.type || 'Unknown',
     });
   } catch (error) {
     console.error("Disk Error:", error);
-    res.status(500).json({
-      capacity: "0 GB",
-      storagePercent: "0%",
-      type: "Unknown",
-    });
   }
 });
 
-
+app.listen(port,()=>{
+    console.log("Server running on ",port);
+})
 

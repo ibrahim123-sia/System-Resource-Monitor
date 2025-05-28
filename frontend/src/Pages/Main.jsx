@@ -10,7 +10,6 @@ const Main = () => {
   const [Memory, setMemory] = useState();
   const [Disk, setDisk] = useState();
   const [GPU, setGPU] = useState();
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchProcessInfo = async () => {
@@ -64,52 +63,32 @@ const Main = () => {
   };
 
   useEffect(() => {
-    const fetchAllData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        await Promise.all([
-          fetchProcessInfo(),
-          fetchCPUInfo(),
-          fetchMemoryInfo(),
-          fetchDiskInfo(),
-          fetchGPUInfo(),
-        ]);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllData();
-
-    const interval = setInterval(() => {
-      Promise.all([
-        fetchProcessInfo().catch(console.error),
-        fetchCPUInfo().catch(console.error),
-        fetchMemoryInfo().catch(console.error),
-        fetchDiskInfo().catch(console.error),
-        fetchGPUInfo().catch(console.error),
+  const fetchAllData = async () => {
+    try {
+      await Promise.all([
+        fetchProcessInfo(),
+        fetchCPUInfo(),
+        fetchMemoryInfo(),
+        fetchDiskInfo(),
+        fetchGPUInfo(),
       ]);
-    }, 2000);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
-    return () => clearInterval(interval);
-  }, []);
+  fetchAllData();
+
+  const interval = setInterval(fetchAllData, 1000);
+
+  return () => clearInterval(interval);
+}, []);
+
 
   const getMemoryPercent = () =>
     Memory ? ((Memory.usedmemory / Memory.totalmemory) * 100).toFixed(1) : 0;
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-        </div>
-      </div>
-    );
-  }
+ 
 
   if (error) {
     return (
@@ -127,8 +106,8 @@ const Main = () => {
       <Navbar />
 
       <div className="p-10 flex gap-10 flex-wrap justify-center">
-        <div className="w-[560px]">
-          <table className="w-full bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div className="">
+          <table className="w-full bg-gray-800 rounded-lg shadow-lg">
             <thead>
               <tr className="bg-gray-700 text-gray-300 uppercase text-[16px] leading-normal">
                 <th className="py-2 px-6 text-left">PID</th>
@@ -204,11 +183,11 @@ const Main = () => {
             details={
               <>
                 <p className="text-yellow-400">
-                  Used: {Disk?.usedGB || "0 GB"} / {Disk?.totalGB || "0 GB"}
+                  Total: {Disk?.capacity || "0 GB"}
                 </p>
-                <p className="text-blue-400">Type: {Disk?.type || "Unknown"}</p>
+                <p className="text-blue-400">Used: {Disk?.usedGB || "Unknown"}</p>
                 <p className="text-green-400">
-                  System Disk: {Disk?.type || "No"}
+                  Free: {Disk?.free.toFixed(1) || "No"}
                 </p>
               </>
             }

@@ -73,11 +73,9 @@ const Disk = () => {
     return (
       <div className="min-h-screen bg-gray-900 flex flex-col">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
-        </div>
+       <div className="flex justify-center mt-[200px] "><p className="text-lg text-green-500"> Loading...</p></div>
       </div>
-    )
+    );
   }
 
   if (error) {
