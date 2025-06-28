@@ -14,7 +14,7 @@ const Main = () => {
 
   const fetchProcessInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/ProcessInfo");
+      const res = await axios.get("/api/ProcessInfo");
       setProcesses(res.data);
     } catch (err) {
       console.error("Error fetching processes:", err);
@@ -24,7 +24,7 @@ const Main = () => {
 
   const fetchCPUInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/CPUInfo");
+      const res = await axios.get("/api/CPUInfo");
       setCPU(res.data);
     } catch (err) {
       console.error("Error fetching CPU:", err);
@@ -34,7 +34,7 @@ const Main = () => {
 
   const fetchMemoryInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/MemoryInfo");
+      const res = await axios.get("/api/MemoryInfo");
       setMemory(res.data);
     } catch (err) {
       console.error("Error fetching memory:", err);
@@ -44,7 +44,7 @@ const Main = () => {
 
   const fetchDiskInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/DiskInfo");
+      const res = await axios.get("/api/DiskInfo");
       setDisk(res.data);
     } catch (err) {
       console.error("Error fetching disk:", err);
@@ -54,7 +54,7 @@ const Main = () => {
 
   const fetchGPUInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/GPUInfo");
+      const res = await axios.get("/api/GPUInfo");
       setGPU(res.data);
     } catch (err) {
       console.error("Error fetching GPU:", err);
@@ -107,7 +107,7 @@ const Main = () => {
 
       <div className="p-10 flex gap-10 flex-wrap justify-center">
         <div className="">
-          <table className="w-full bg-gray-800 rounded-lg shadow-lg">
+          <table className="w-full bg-gray-800 rounded-lg shadow-lg ">
             <thead>
               <tr className="bg-gray-700 text-gray-300 uppercase text-[16px] leading-normal">
                 <th className="py-2 px-6 text-left">PID</th>

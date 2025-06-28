@@ -31,7 +31,7 @@ const GPU = () => {
 
   const fetchGPUInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/GpuInfo");
+      const res = await axios.get("/api/GpuInfo");
       const newData = {
         utilization: parseInt(res.data.utilization),
         memoryUsed: parseFloat(res.data.memory.dedicated.split("/")[0]),

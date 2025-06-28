@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
@@ -19,7 +18,7 @@ const CPU = () => {
 
   const fetchCPU = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/CPUInfo");
+      const res = await axios.get("/api/CPUInfo");
       const responseData = res.data;
 
       setCpuData(res.data);

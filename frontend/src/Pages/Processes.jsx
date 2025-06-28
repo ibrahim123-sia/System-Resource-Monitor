@@ -9,7 +9,7 @@ const Processes = () => {
 
   const fetchProcessInfo = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/ProcessInfo");
+      const res = await axios.get("/api/ProcessInfo");
       setProcesses(res.data);
       setError(null);
     } catch (err) {
@@ -22,7 +22,7 @@ const Processes = () => {
 
  useEffect(() => {
   fetchProcessInfo();
-  const interval = setInterval(fetchProcessInfo, 3000);
+  const interval = setInterval(fetchProcessInfo, 1000);
   return () => clearInterval(interval);
 }, []);
 

@@ -31,7 +31,7 @@ const Memory = () => {
 
   const fetchMemoryInfo = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/MemoryInfo')
+      const res = await axios.get('/api/MemoryInfo')
       const newData = {
         used: (res.data.usedmemory / 1024 ** 3).toFixed(1),
         total: (res.data.totalmemory / 1024 ** 3).toFixed(1),
